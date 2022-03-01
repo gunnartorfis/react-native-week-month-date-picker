@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-week-month-date-picker';
+import { DatePicker, multiply } from 'react-native-week-month-date-picker';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
@@ -13,6 +13,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
+      <DatePicker date={new Date()} />
     </View>
   );
 }
