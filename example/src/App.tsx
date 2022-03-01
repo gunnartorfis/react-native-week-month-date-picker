@@ -1,19 +1,12 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { DatePicker, multiply } from 'react-native-week-month-date-picker';
+import { StyleSheet, View } from 'react-native';
+import { DatePicker } from 'react-native-week-month-date-picker';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
-
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
-      <DatePicker date={new Date()} />
+      <DatePicker startDate={new Date()} maxFutureDays={30} timeslots={[]} />
     </View>
   );
 }
