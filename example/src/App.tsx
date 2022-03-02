@@ -13,6 +13,9 @@ export default function App() {
         maxFutureDays={90}
         markedDates={[new Date(), addDays(new Date(), 2)]}
         onDateChange={(date) => setSelectedDate(date)}
+        theme={{
+          primaryColor: 'purple',
+        }}
       >
         <View>
           <Text>Timeslots</Text>

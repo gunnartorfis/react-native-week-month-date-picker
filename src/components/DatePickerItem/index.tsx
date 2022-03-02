@@ -1,6 +1,7 @@
 import { format, isToday as isTodayFNS } from 'date-fns';
 import React from 'react';
 import { Text, TouchableOpacity, View, ViewProps } from 'react-native';
+import { ThemeContext } from 'react-native-week-month-date-picker';
 import styles, { ITEM_WIDTH } from './styles';
 
 export type DatePickerItemProps = {
@@ -21,6 +22,8 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
   isDisabled,
   ...props
 }) => {
+  const { primaryColor } = React.useContext(ThemeContext);
+
   let color: string = '#000';
   let backgroundColor: string = 'transparent';
   const isToday = isTodayFNS(date);
@@ -29,12 +32,12 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
     color = '#ccc';
   } else {
     if (isToday) {
-      color = 'blue';
+      color = primaryColor;
     }
     if (isSelected) {
       color = '#ddd';
       if (isToday) {
-        backgroundColor = 'blue';
+        backgroundColor = primaryColor;
       } else {
         backgroundColor = '#333';
       }
@@ -73,7 +76,7 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
                 styles.dot,
                 // eslint-disable-next-line react-native/no-inline-styles
                 {
-                  backgroundColor: isSelected ? backgroundColor : 'blue',
+                  backgroundColor: isSelected ? backgroundColor : primaryColor,
                 },
               ]}
             />

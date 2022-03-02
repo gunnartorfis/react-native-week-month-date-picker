@@ -47,7 +47,16 @@ export type DatePickerProps = {
   maxFutureDays: number;
   markedDates: MarkedDates;
   onDateChange: (date: Date) => void;
+  theme?: {
+    primaryColor?: string;
+  };
 };
+
+export const ThemeContext = React.createContext<{
+  primaryColor: string;
+}>({
+  primaryColor: 'blue',
+});
 
 export const DatePickerComponent: React.FC<DatePickerProps> = ({
   startDate,
@@ -55,6 +64,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
   markedDates,
   children,
   onDateChange,
+  theme,
 }) => {
   const weekScrollDatePickerToDateTriggerRef =
     React.useRef<(date: Date) => void>();
@@ -71,6 +81,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
 
   const [selectedDay, setSelectedDay] = React.useState<Date>(startDate);
   const endDate = addDays(startDate, maxFutureDays || 30);
+  const systemTheme = useColorScheme();
 
   const safeAreaInsets = useSafeAreaInsets();
   const MONTH_VIEW_HEIGHT =
@@ -81,7 +92,6 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
     (Platform.select({ ios: 0, android: 90 }) || 0);
 
   const weekMonthContainerHeight = useSharedValue(WEEK_VIEW_HEIGHT);
-  const theme = useColorScheme();
 
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, ctx: any) => {
@@ -183,10 +193,12 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
     onDateChange?.(date);
   };
 
-  const colorStyles = theme === 'light' ? lightStyles : darkStyles;
+  const colorStyles = systemTheme === 'light' ? lightStyles : darkStyles;
 
   return (
-    <>
+    <ThemeContext.Provider
+      value={{ primaryColor: theme?.primaryColor || 'blue' }}
+    >
       <SafeAreaView style={styles.childrenContainer}>{children}</SafeAreaView>
       <SafeAreaView edges={['bottom', 'left', 'right']}>
         <Animated.View style={[colorStyles.animatedContainer, gestureStyle]}>
@@ -287,7 +299,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
           />
         </Animated.View>
       </SafeAreaView>
-    </>
+    </ThemeContext.Provider>
   );
 };
 
