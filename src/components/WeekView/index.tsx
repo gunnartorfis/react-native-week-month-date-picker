@@ -1,34 +1,34 @@
-import { format, getDay, isSameDay, isToday } from 'date-fns';
+import { getDay, isSameDay, isToday } from 'date-fns';
 import React from 'react';
 import { FlatList, ViewProps } from 'react-native';
 import Animated from 'react-native-reanimated';
-import type { Dates } from 'react-native-week-month-date-picker';
-import type { TimeSlots } from 'src/types/timeslots';
-import DatePickerItem, {
-  DatePickerItemProps,
-  ITEM_WIDTH_WITHOUT_MARGINS,
-} from './DatePickerItem';
+import type { Dates, MarkedDates } from 'react-native-week-month-date-picker';
+import DatePickerItem, { DatePickerItemProps } from '../DatePickerItem';
+import { ITEM_WIDTH_WITHOUT_MARGINS } from '../DatePickerItem/styles';
+import styles from './styles';
 
-export const doesDateHaveSlots = (date: Date, timeslots?: TimeSlots) => {
-  const slots = timeslots?.find((t) => {
-    return t.date === format(date, 'yyyy-MM-dd');
-  })?.slots;
-  return (slots?.length || 0) > 0;
+export const doesDateHaveSlots = (date: Date, markedDates?: MarkedDates) => {
+  const slots = markedDates?.find((t) => {
+    return isSameDay(date, t);
+  });
+  return !!slots;
 };
 
-const WeekViewRaw: React.FC<
+const WeekView: React.FC<
   {
     onPressDate: DatePickerItemProps['onPressDate'];
     dates: Dates;
-    timeslots?: TimeSlots;
+    markedDates?: MarkedDates;
     setScrollDatePickerToDateTrigger: (trigger: (date: Date) => void) => void;
+    selectedDate: Date;
   } & ViewProps
 > = ({
   style,
   onPressDate,
   dates,
-  timeslots,
+  markedDates,
   setScrollDatePickerToDateTrigger,
+  selectedDate,
 }) => {
   const flatListRef = React.useRef<FlatList>(null);
 
@@ -65,8 +65,7 @@ const WeekViewRaw: React.FC<
       <FlatList
         data={dates}
         ref={flatListRef}
-        style={{ flexGrow: 1, flexShrink: 0 }}
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: 8 }}
+        contentContainerStyle={styles.flatListContentContainer}
         keyExtractor={(item) => item.date.toString()}
         horizontal
         removeClippedSubviews
@@ -86,8 +85,8 @@ const WeekViewRaw: React.FC<
               {...item}
               key={item.date.toString()}
               onPressDate={onPressDate}
-              hasSlots={doesDateHaveSlots(item.date, timeslots)}
-              showDayChar={false}
+              hasSlots={doesDateHaveSlots(item.date, markedDates)}
+              isSelected={isSameDay(item.date, selectedDate)}
             />
           );
         }}
@@ -96,4 +95,4 @@ const WeekViewRaw: React.FC<
   );
 };
 
-export default WeekViewRaw;
+export default WeekView;

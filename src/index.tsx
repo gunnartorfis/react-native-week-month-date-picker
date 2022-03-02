@@ -1,13 +1,12 @@
-import { addDays, isSameDay, isToday, startOfWeek } from 'date-fns';
+import { addDays, startOfWeek } from 'date-fns';
+import moment from 'moment';
 import React from 'react';
+import { Dimensions, Platform, Text, useColorScheme, View } from 'react-native';
+import 'react-native-gesture-handler';
 import {
-  Dimensions,
-  Platform,
-  Text,
-  TouchableHighlight,
-  View,
-} from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+  PanGestureHandler,
+  TouchableOpacity,
+} from 'react-native-gesture-handler';
 import Animated, {
   Easing,
   interpolate,
@@ -17,13 +16,18 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {
+  SafeAreaProvider,
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import MonthView from './components/MonthView';
 import TextButton from './components/TextButton';
-import WeekViewRaw from './components/WeekView';
-import type { TimeSlots } from './types/timeslots';
+import WeekView from './components/WeekView';
+import styles, {
+  darkStyles,
+  lightStyles,
+  WEEK_MONTH_TOGGLER_WIDTH,
+} from './styles';
 import { generateDateRange } from './utils/generateDateRange';
 
 export type Dates = {
@@ -35,26 +39,37 @@ export type Dates = {
 const { height: WINDOW_HEIGHT, width: WINDOW_WIDTH } = Dimensions.get('screen');
 const WEEK_VIEW_HEIGHT = 140;
 const NAVIGATION_TITLE_HEIGHT = 70;
-const WEEK_MONTH_TOGGLER_WIDTH = 32;
 
-export const DatePicker: React.FC<{
+export type MarkedDates = Date[];
+
+export type DatePickerProps = {
   startDate: Date;
   maxFutureDays: number;
-  timeslots: TimeSlots;
-}> = ({ startDate, maxFutureDays, timeslots }) => {
+  markedDates: MarkedDates;
+  onDateChange: (date: Date) => void;
+};
+
+export const DatePickerComponent: React.FC<DatePickerProps> = ({
+  startDate,
+  maxFutureDays,
+  markedDates,
+  children,
+  onDateChange,
+}) => {
   const weekScrollDatePickerToDateTriggerRef =
     React.useRef<(date: Date) => void>();
   const monthScrollToTopTriggerRef = React.useRef<() => void>();
 
-  const [dates, setDates] = React.useState<Dates>(
-    generateDateRange(
+  const dates = React.useMemo(() => {
+    return generateDateRange(
       startOfWeek(new Date(), {
         weekStartsOn: 1, // Monday
       }),
       addDays(startDate, maxFutureDays || 30)
-    )
-  );
-  const selectedDay = dates.find((date) => date.isSelected)?.date ?? new Date();
+    );
+  }, [maxFutureDays, startDate]);
+
+  const [selectedDay, setSelectedDay] = React.useState<Date>(startDate);
   const endDate = addDays(startDate, maxFutureDays || 30);
 
   const safeAreaInsets = useSafeAreaInsets();
@@ -66,6 +81,7 @@ export const DatePicker: React.FC<{
     (Platform.select({ ios: 0, android: 90 }) || 0);
 
   const weekMonthContainerHeight = useSharedValue(WEEK_VIEW_HEIGHT);
+  const theme = useColorScheme();
 
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, ctx: any) => {
@@ -162,162 +178,123 @@ export const DatePicker: React.FC<{
     };
   });
 
+  const updateSelectedDate = (date: Date) => {
+    setSelectedDay(date);
+    onDateChange?.(date);
+  };
+
+  const colorStyles = theme === 'light' ? lightStyles : darkStyles;
+
   return (
-    <SafeAreaView
-      edges={['bottom', 'left', 'right']}
-      style={{
-        backgroundColor: 'white',
-        flexDirection: 'column',
-      }}
-    >
-      <Animated.View
-        style={[
-          {
-            backgroundColor: 'white',
-          },
-          gestureStyle,
-        ]}
-      >
-        <View
-          style={{
-            borderTopColor: '#ccc',
-            borderTopWidth: 1,
-            paddingHorizontal: 8,
-          }}
-        >
-          <PanGestureHandler onGestureEvent={gestureHandler}>
-            <Animated.View
-              style={{
-                paddingTop: 8,
-                alignItems: 'center',
-                width: '100%',
-              }}
-            >
-              <TouchableHighlight
-                onPress={() => {
-                  if (weekMonthContainerHeight.value === WEEK_VIEW_HEIGHT) {
-                    showMonthView();
-                  } else {
-                    hideMonthView();
-                  }
-                }}
-                hitSlop={{
-                  left: WINDOW_WIDTH / 2 - WEEK_MONTH_TOGGLER_WIDTH / 2,
-                  right: WINDOW_WIDTH / 2 - WEEK_MONTH_TOGGLER_WIDTH / 2,
-                  top: 8,
-                  bottom: 32,
-                }}
-              >
-                <View
-                  style={{
-                    width: WEEK_MONTH_TOGGLER_WIDTH,
-                    height: 5,
-                    backgroundColor: '#444',
-                    borderRadius: 5,
-                    marginBottom: 8,
-                  }}
-                />
-              </TouchableHighlight>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  alignSelf: 'flex-end',
-                  justifyContent: 'flex-end',
-                  marginRight: 16,
-                  zIndex: 9,
-                }}
-              >
-                <TextButton
-                  hitSlop={{
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: 16,
-                  }}
-                  title={'Today'}
+    <>
+      <SafeAreaView style={styles.childrenContainer}>{children}</SafeAreaView>
+      <SafeAreaView edges={['bottom', 'left', 'right']}>
+        <Animated.View style={[colorStyles.animatedContainer, gestureStyle]}>
+          <View style={[styles.panContainer, colorStyles.panContainer]}>
+            <PanGestureHandler onGestureEvent={gestureHandler}>
+              <Animated.View style={styles.panAnimatedContainer}>
+                <TouchableOpacity
                   onPress={() => {
-                    setDates(
-                      dates.map((d) => ({ ...d, isSelected: isToday(d.date) }))
-                    );
-                    const weekViewIsPresent =
-                      weekMonthContainerHeight.value === WEEK_VIEW_HEIGHT;
-                    if (weekViewIsPresent) {
-                      weekScrollDatePickerToDateTriggerRef?.current?.(
-                        new Date()
-                      );
+                    if (weekMonthContainerHeight.value === WEEK_VIEW_HEIGHT) {
+                      showMonthView();
                     } else {
                       hideMonthView();
-                      weekScrollDatePickerToDateTriggerRef.current?.(
-                        new Date()
-                      );
-                      monthScrollToTopTriggerRef?.current?.();
                     }
                   }}
-                />
-              </View>
-            </Animated.View>
-          </PanGestureHandler>
-          <Animated.View
-            style={[
-              {
-                flexDirection: 'row',
-                marginTop: 8,
-                paddingBottom: 4,
-                borderBottomColor: '#ccc',
-                marginHorizontal: -8,
-              },
-              weekDaysContainerAnimatedStyle,
-            ]}
-          >
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => {
-              return (
-                <Text
-                  key={index}
-                  style={{
-                    width: Dimensions.get('window').width / 7,
-                    textAlign: 'center',
-                    marginTop: 4,
+                  hitSlop={{
+                    left: WINDOW_WIDTH / 2 - WEEK_MONTH_TOGGLER_WIDTH / 2,
+                    right: WINDOW_WIDTH / 2 - WEEK_MONTH_TOGGLER_WIDTH / 2,
+                    top: 8,
+                    bottom: 32,
                   }}
                 >
-                  {day[0]?.toUpperCase()}
-                </Text>
-              );
-            })}
-          </Animated.View>
-        </View>
-        <WeekViewRaw
-          style={weekViewStyle}
-          dates={dates}
-          setScrollDatePickerToDateTrigger={(trigger) => {
-            weekScrollDatePickerToDateTriggerRef.current = trigger;
-          }}
-          onPressDate={(date) => {
-            setDates(dates.map((d) => ({ ...d, isSelected: d.date === date })));
-          }}
-          timeslots={timeslots}
-        />
-        <MonthView
-          startDate={startDate}
-          endDate={endDate}
-          selectedDate={selectedDay}
-          style={monthViewStyle}
-          timeslots={timeslots}
-          onPressDate={(selectedDate) => {
-            setDates(
-              dates.map((d) => ({
-                ...d,
-                isSelected: isSameDay(d.date, selectedDate),
-              }))
-            );
-            weekScrollDatePickerToDateTriggerRef?.current?.(selectedDate);
-            hideMonthView();
-          }}
-          setScrollToTopTrigger={(trigger) => {
-            monthScrollToTopTriggerRef.current = trigger;
-          }}
-        />
-      </Animated.View>
-    </SafeAreaView>
+                  <View style={[styles.panHandle, colorStyles.panHandle]} />
+                </TouchableOpacity>
+                <View style={styles.panActionRowContainer}>
+                  <TextButton
+                    hitSlop={{
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 16,
+                    }}
+                    title={'Today'}
+                    onPress={() => {
+                      updateSelectedDate(new Date());
+                      const weekViewIsPresent =
+                        weekMonthContainerHeight.value === WEEK_VIEW_HEIGHT;
+                      if (weekViewIsPresent) {
+                        weekScrollDatePickerToDateTriggerRef?.current?.(
+                          new Date()
+                        );
+                      } else {
+                        hideMonthView();
+                        weekScrollDatePickerToDateTriggerRef.current?.(
+                          new Date()
+                        );
+                        monthScrollToTopTriggerRef?.current?.();
+                      }
+                    }}
+                  />
+                </View>
+              </Animated.View>
+            </PanGestureHandler>
+            <Animated.View
+              style={[
+                styles.panWeekdaysContainer,
+                colorStyles.panWeekdaysContainer,
+                weekDaysContainerAnimatedStyle,
+              ]}
+            >
+              {[
+                ...moment.weekdaysShort().slice(1),
+                moment.weekdaysShort()[0],
+              ].map((day, index) => {
+                return (
+                  <Text key={index} style={styles.panWeekdaysText}>
+                    {day[0]?.toUpperCase()}
+                  </Text>
+                );
+              })}
+            </Animated.View>
+          </View>
+          <WeekView
+            style={weekViewStyle}
+            dates={dates}
+            setScrollDatePickerToDateTrigger={(trigger) => {
+              weekScrollDatePickerToDateTriggerRef.current = trigger;
+            }}
+            onPressDate={(date) => {
+              updateSelectedDate(date);
+            }}
+            markedDates={markedDates}
+            selectedDate={selectedDay}
+          />
+          <MonthView
+            startDate={startDate}
+            endDate={endDate}
+            selectedDate={selectedDay}
+            style={monthViewStyle}
+            markedDates={markedDates}
+            onPressDate={(selectedDate) => {
+              updateSelectedDate(selectedDate);
+              weekScrollDatePickerToDateTriggerRef?.current?.(selectedDate);
+              hideMonthView();
+            }}
+            setScrollToTopTrigger={(trigger) => {
+              monthScrollToTopTriggerRef.current = trigger;
+            }}
+          />
+        </Animated.View>
+      </SafeAreaView>
+    </>
+  );
+};
+
+export const DatePicker: React.FC<DatePickerProps> = (props) => {
+  return (
+    <SafeAreaProvider>
+      <DatePickerComponent {...props} />
+    </SafeAreaProvider>
   );
 };

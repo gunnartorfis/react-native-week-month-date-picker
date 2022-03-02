@@ -1,24 +1,13 @@
 import { format, isToday as isTodayFNS } from 'date-fns';
 import React from 'react';
-import {
-  Dimensions,
-  Text,
-  TouchableHighlight,
-  View,
-  ViewProps,
-} from 'react-native';
-
-export const ITEM_MARGINS = 12;
-export const ITEM_WIDTH_WITHOUT_MARGINS = Dimensions.get('window').width / 7;
-export const ITEM_WIDTH =
-  (Dimensions.get('window').width - ITEM_MARGINS * 2 * 7) / 7;
+import { Text, TouchableOpacity, View, ViewProps } from 'react-native';
+import styles, { ITEM_WIDTH } from './styles';
 
 export type DatePickerItemProps = {
   isSelected: boolean;
   date: Date;
   hasSlots: boolean;
   onPressDate: (item: Date) => void;
-  showDayChar?: boolean;
   itemWidth?: number;
   isDisabled?: boolean;
 };
@@ -30,7 +19,6 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
   onPressDate,
   itemWidth,
   isDisabled,
-  showDayChar = true,
   ...props
 }) => {
   let color: string = '#000';
@@ -58,52 +46,40 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
 
   return (
     <View {...props}>
-      {showDayChar ? (
-        <Text style={{ textAlign: 'center', marginBottom: 12 }}>
-          {format(date, 'E')[0]}
-        </Text>
-      ) : null}
-      <TouchableHighlight
+      <TouchableOpacity
         onPress={() => {
           onPressDate(date);
         }}
         disabled={isDisabled}
       >
-        <View
-          style={{
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
+        <View style={styles.dotAndTextContainer}>
           <View
             key={date.toISOString()}
-            style={{
-              width: itemWidth ?? ITEM_WIDTH,
-              backgroundColor,
-              height: ITEM_WIDTH,
-              borderRadius: ITEM_WIDTH,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginHorizontal: ITEM_MARGINS,
-            }}
+            style={[
+              styles.dayNumberContainer,
+              {
+                width: itemWidth ?? ITEM_WIDTH,
+                backgroundColor,
+              },
+            ]}
           >
-            <Text style={{ textAlign: 'center', color, fontSize: 18 }}>
+            <Text style={[styles.dayNumberText, { color }]}>
               {dayNumber?.startsWith('0') ? dayNumber.slice(1) : dayNumber}
             </Text>
           </View>
           {hasSlots && showDots ? (
             <View
-              style={{
-                marginTop: 4,
-                width: 5,
-                height: 5,
-                borderRadius: 5,
-                backgroundColor: isSelected ? backgroundColor : 'blue',
-              }}
+              style={[
+                styles.dot,
+                // eslint-disable-next-line react-native/no-inline-styles
+                {
+                  backgroundColor: isSelected ? backgroundColor : 'blue',
+                },
+              ]}
             />
           ) : null}
         </View>
-      </TouchableHighlight>
+      </TouchableOpacity>
     </View>
   );
 };
