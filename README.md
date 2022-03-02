@@ -1,6 +1,8 @@
-# react-native-week-month-date-picker
+# React Native Week Month Date Picker
 
 Date picker with a week and month view
+
+<img src="https://user-images.githubusercontent.com/5333875/156450983-d504b47f-5fac-4be2-ac9d-ccdb239006e9.gif" alt="Demo" width="200"/>
 
 ## Installation
 
