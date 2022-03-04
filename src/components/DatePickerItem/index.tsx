@@ -74,7 +74,6 @@ const DatePickerItemRaw: React.FC<DatePickerItemProps & ViewProps> = ({
             <View
               style={[
                 styles.dot,
-                // eslint-disable-next-line react-native/no-inline-styles
                 {
                   backgroundColor: isSelected ? backgroundColor : primaryColor,
                 },
