@@ -9,6 +9,14 @@ Date picker with a week and month view
 ```sh
 npm install react-native-week-month-date-picker
 ```
+#### Dependencies
+
+This library needs these dependencies to be installed as peer dependencies in your project:
+
+```bash
+npm install react-native-reanimated react-native-gesture-handler react-native-safe-area-context moment date-fns
+```
+> follow [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation), [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation), and [react-native-safe-area-context](https://github.com/th3rdwave/react-native-safe-area-context#getting-started) installation guide to install native dependencies properly. 
 
 ## Usage
 
