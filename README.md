@@ -9,14 +9,16 @@ Date picker with a week and month view
 ```sh
 npm install react-native-week-month-date-picker
 ```
+
 #### Dependencies
 
 This library needs these dependencies to be installed as peer dependencies in your project:
 
 ```bash
-npm install react-native-reanimated react-native-gesture-handler react-native-safe-area-context moment date-fns
+npm install react-native-reanimated react-native-gesture-handler react-native-safe-area-context date-fns
 ```
-> follow [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation), [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation), and [react-native-safe-area-context](https://github.com/th3rdwave/react-native-safe-area-context#getting-started) installation guide to install native dependencies properly. 
+
+> follow [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation), [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation), and [react-native-safe-area-context](https://github.com/th3rdwave/react-native-safe-area-context#getting-started) installation guide to install native dependencies properly.
 
 ## Usage
 
@@ -40,6 +42,7 @@ export default function App() {
         onDateChange={(date) => setSelectedDate(date)}
         disabledDates={[addDays(new Date(), 1), addDays(new Date(), 3)]}
         allowsPastDates={false}
+        locale="en"
         theme={{
           primaryColor: 'purple',
         }}

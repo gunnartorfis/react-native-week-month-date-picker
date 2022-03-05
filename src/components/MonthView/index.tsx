@@ -1,5 +1,4 @@
 import { addMonths, differenceInMonths, getDay, isSameDay } from 'date-fns';
-import moment from 'moment';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -31,6 +30,7 @@ const MonthViewRaw: React.FC<
     markedDates?: DatePickerProps['markedDates'];
     allowsPastDates: DatePickerProps['allowsPastDates'];
     disabledDates: DatePickerProps['disabledDates'];
+    locale: DatePickerProps['locale'];
   } & ScrollViewProps
 > = ({
   minDate,
@@ -42,6 +42,7 @@ const MonthViewRaw: React.FC<
   markedDates,
   allowsPastDates,
   disabledDates,
+  locale,
   ...props
 }) => {
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -115,7 +116,10 @@ const MonthViewRaw: React.FC<
         {...props}
       >
         {datesToDisplay.map((datesInMonth) => {
-          const monthNameLowercase = moment(datesInMonth[0].date).format('MMM');
+          const monthNameLowercase = datesInMonth[0].date.toLocaleString(
+            locale,
+            { month: 'short' }
+          );
           const monthName =
             monthNameLowercase.charAt(0).toUpperCase() +
             monthNameLowercase.slice(1);
@@ -136,7 +140,7 @@ const MonthViewRaw: React.FC<
 
           return (
             <View
-              key={moment(datesInMonth[0].date).toString()}
+              key={datesInMonth[0].date.toISOString()}
               style={styles.monthContainer}
             >
               <Text style={{ marginLeft: initialLeftMargin + 12 }}>

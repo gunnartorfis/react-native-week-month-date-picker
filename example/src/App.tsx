@@ -10,7 +10,7 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <DatePicker
         minDate={minDate}
         maxDate={addDays(minDate, 120)}
@@ -24,7 +24,7 @@ export default function App() {
         }}
       >
         <View>
-          <Text>Timeslots</Text>
+          <Text>Selected date</Text>
           <Text>{selectedDate.toString()}</Text>
         </View>
       </DatePicker>

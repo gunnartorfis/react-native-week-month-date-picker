@@ -1,5 +1,4 @@
-import { addDays, differenceInDays, startOfWeek } from 'date-fns';
-import moment from 'moment';
+import { addDays, differenceInDays, endOfWeek, startOfWeek } from 'date-fns';
 import React from 'react';
 import { Dimensions, Platform, Text, useColorScheme, View } from 'react-native';
 import 'react-native-gesture-handler';
@@ -51,6 +50,7 @@ export type DatePickerProps = {
   theme?: {
     primaryColor?: string;
   };
+  locale?: string;
 };
 
 export const ThemeContext = React.createContext<{
@@ -69,6 +69,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
   onDateChange,
   allowsPastDates,
   theme,
+  locale = 'en',
 }) => {
   const weekScrollDatePickerToDateTriggerRef =
     React.useRef<(date: Date) => void>();
@@ -265,13 +266,22 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
                 weekDaysContainerAnimatedStyle,
               ]}
             >
-              {[
-                ...moment.weekdaysShort().slice(1),
-                moment.weekdaysShort()[0],
-              ].map((day, index) => {
+              {generateDateRange({
+                startDate: startOfWeek(new Date(), {
+                  weekStartsOn: 1, // Monday
+                }),
+                endDate: endOfWeek(new Date(), {
+                  weekStartsOn: 1,
+                }),
+                allowsPastDates: true,
+                disabledDates: [],
+              }).map(({ date }) => {
                 return (
-                  <Text key={index} style={styles.panWeekdaysText}>
-                    {day[0]?.toUpperCase()}
+                  <Text key={date.toString()} style={styles.panWeekdaysText}>
+                    {date
+                      .toLocaleString(locale, { weekday: 'long' })
+                      .charAt(0)
+                      .toUpperCase()}
                   </Text>
                 );
               })}
