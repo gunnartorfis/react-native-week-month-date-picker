@@ -33,7 +33,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = React.useState(new Date());
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1}}>
       <DatePicker
         minDate={minDate}
         maxDate={addDays(minDate, 120)}
