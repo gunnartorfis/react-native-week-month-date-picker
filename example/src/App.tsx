@@ -22,6 +22,10 @@ export default function App() {
         theme={{
           primaryColor: 'purple',
         }}
+        locale="en"
+        translations={{
+          todayButtonText: 'Í dag',
+        }}
       >
         <View>
           <Text>Selected date</Text>

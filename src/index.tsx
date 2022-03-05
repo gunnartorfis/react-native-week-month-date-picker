@@ -50,6 +50,9 @@ export type DatePickerProps = {
   theme?: {
     primaryColor?: string;
   };
+  translations?: {
+    todayButtonText?: string;
+  };
   locale?: string;
 };
 
@@ -69,6 +72,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
   onDateChange,
   allowsPastDates,
   theme,
+  translations: { todayButtonText = 'Today' } = {},
   locale = 'en',
 }) => {
   const weekScrollDatePickerToDateTriggerRef =
@@ -234,7 +238,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
                       top: 16,
                       bottom: 16,
                     }}
-                    title={'Today'}
+                    title={todayButtonText}
                     onPress={() => {
                       const dateToScrollTo =
                         differenceInDays(minDate, new Date()) > 0
