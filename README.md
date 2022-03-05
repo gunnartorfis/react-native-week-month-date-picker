@@ -38,6 +38,7 @@ export default function App() {
         markedDates={[minDate, addDays(new Date(), 2)]}
         selectedDate={selectedDate}
         onDateChange={(date) => setSelectedDate(date)}
+        disabledDates={[addDays(new Date(), 1), addDays(new Date(), 3)]}
         allowsPastDates={false}
         theme={{
           primaryColor: 'purple',
