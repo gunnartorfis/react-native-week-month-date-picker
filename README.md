@@ -21,19 +21,26 @@ npm install react-native-reanimated react-native-gesture-handler react-native-sa
 ## Usage
 
 ```js
-import { DatePicker } from 'react-native-week-month-date-picker';
 import { addDays } from 'date-fns';
+import * as React from 'react';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { DatePicker } from 'react-native-week-month-date-picker';
 
 export default function App() {
-  const [selectedDate, setSelectedDate] = React.useState(new Date());
+  const minDate = new Date();
+  const [selectedDate, setSelectedDate] = React.useState(
+    addDays(new Date(), 0)
+  );
 
   return (
     <SafeAreaView>
       <DatePicker
-        startDate={new Date()}
-        maxFutureDays={90}
-        markedDates={[new Date(), addDays(new Date(), 2)]}
+        minDate={minDate}
+        maxDate={addDays(minDate, 120)}
+        markedDates={[minDate, addDays(new Date(), 2)]}
+        selectedDate={selectedDate}
         onDateChange={(date) => setSelectedDate(date)}
+        allowsPastDates={false}
         theme={{
           primaryColor: 'purple',
         }}
