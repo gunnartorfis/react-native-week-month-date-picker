@@ -28,9 +28,7 @@ import { DatePicker } from 'react-native-week-month-date-picker';
 
 export default function App() {
   const minDate = new Date();
-  const [selectedDate, setSelectedDate] = React.useState(
-    addDays(new Date(), 0)
-  );
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
 
   return (
     <SafeAreaView>
