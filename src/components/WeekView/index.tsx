@@ -1,13 +1,17 @@
-import { getDay, isSameDay, isToday } from 'date-fns';
+import { getDay, isSameDay } from 'date-fns';
 import React from 'react';
 import { FlatList, ViewProps } from 'react-native';
 import Animated from 'react-native-reanimated';
-import type { Dates, MarkedDates } from 'react-native-week-month-date-picker';
+import type { Dates } from 'react-native-week-month-date-picker';
+import type { DatePickerProps } from '../..';
 import DatePickerItem, { DatePickerItemProps } from '../DatePickerItem';
 import { ITEM_WIDTH_WITHOUT_MARGINS } from '../DatePickerItem/styles';
 import styles from './styles';
 
-export const doesDateHaveSlots = (date: Date, markedDates?: MarkedDates) => {
+export const doesDateHaveSlots = (
+  date: Date,
+  markedDates?: DatePickerProps['markedDates']
+) => {
   const slots = markedDates?.find((t) => {
     return isSameDay(date, t);
   });
@@ -18,9 +22,9 @@ const WeekView: React.FC<
   {
     onPressDate: DatePickerItemProps['onPressDate'];
     dates: Dates;
-    markedDates?: MarkedDates;
+    markedDates: DatePickerProps['markedDates'];
     setScrollDatePickerToDateTrigger: (trigger: (date: Date) => void) => void;
-    selectedDate: Date;
+    selectedDate: DatePickerProps['selectedDate'];
   } & ViewProps
 > = ({
   style,
@@ -31,18 +35,17 @@ const WeekView: React.FC<
   selectedDate,
 }) => {
   const flatListRef = React.useRef<FlatList>(null);
+  const hasScrolledInitially = React.useRef(false);
 
-  React.useEffect(() => {
-    const scrollDatePickerToDate = (date: Date) => {
+  const scrollDatePickerToDate = React.useCallback(
+    (date: Date) => {
       const indexOfSelectedDate = dates.findIndex((d) =>
         isSameDay(date, d.date)
       );
       let indexToScrollTo = indexOfSelectedDate;
       const indexOfFirstDateInWeek = indexOfSelectedDate - getDay(date) + 1; // 1 because starting at Mondays
 
-      if (isToday(date)) {
-        indexToScrollTo = 0;
-      } else if (indexOfFirstDateInWeek <= 6) {
+      if (indexOfFirstDateInWeek <= 6) {
         // User is scrolling Today when in current week
         indexToScrollTo = 0;
       } else {
@@ -55,10 +58,20 @@ const WeekView: React.FC<
           animated: true,
         });
       }
-    };
+    },
+    [dates]
+  );
 
+  React.useEffect(() => {
+    if (selectedDate && hasScrolledInitially.current === false) {
+      hasScrolledInitially.current = true;
+      scrollDatePickerToDate(selectedDate);
+    }
+  }, [scrollDatePickerToDate, selectedDate]);
+
+  React.useEffect(() => {
     setScrollDatePickerToDateTrigger(scrollDatePickerToDate);
-  }, [setScrollDatePickerToDateTrigger, dates]);
+  }, [setScrollDatePickerToDateTrigger, dates, scrollDatePickerToDate]);
 
   return (
     <Animated.View style={style}>

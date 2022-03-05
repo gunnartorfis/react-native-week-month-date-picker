@@ -1,4 +1,4 @@
-import { addDays, startOfWeek } from 'date-fns';
+import { addDays, differenceInDays, startOfWeek } from 'date-fns';
 import moment from 'moment';
 import React from 'react';
 import { Dimensions, Platform, Text, useColorScheme, View } from 'react-native';
@@ -40,13 +40,14 @@ const { height: WINDOW_HEIGHT, width: WINDOW_WIDTH } = Dimensions.get('screen');
 const WEEK_VIEW_HEIGHT = 140;
 const NAVIGATION_TITLE_HEIGHT = 70;
 
-export type MarkedDates = Date[];
-
 export type DatePickerProps = {
-  startDate: Date;
-  maxFutureDays: number;
-  markedDates: MarkedDates;
+  selectedDate: Date;
   onDateChange: (date: Date) => void;
+  minDate?: Date;
+  maxDate?: Date;
+  markedDates?: Date[];
+  disabledDates?: Date[];
+  allowsPastDates?: boolean;
   theme?: {
     primaryColor?: string;
   };
@@ -59,11 +60,14 @@ export const ThemeContext = React.createContext<{
 });
 
 export const DatePickerComponent: React.FC<DatePickerProps> = ({
-  startDate,
-  maxFutureDays,
-  markedDates,
+  selectedDate,
+  minDate = new Date(),
+  maxDate = addDays(new Date(), 90),
+  markedDates = [],
+  disabledDates = [],
   children,
   onDateChange,
+  allowsPastDates,
   theme,
 }) => {
   const weekScrollDatePickerToDateTriggerRef =
@@ -71,16 +75,16 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
   const monthScrollToTopTriggerRef = React.useRef<() => void>();
 
   const dates = React.useMemo(() => {
-    return generateDateRange(
-      startOfWeek(new Date(), {
+    return generateDateRange({
+      startDate: startOfWeek(minDate, {
         weekStartsOn: 1, // Monday
       }),
-      addDays(startDate, maxFutureDays || 30)
-    );
-  }, [maxFutureDays, startDate]);
+      endDate: maxDate,
+      disabledDates,
+      allowsPastDates,
+    });
+  }, [minDate, maxDate, disabledDates, allowsPastDates]);
 
-  const [selectedDay, setSelectedDay] = React.useState<Date>(startDate);
-  const endDate = addDays(startDate, maxFutureDays || 30);
   const systemTheme = useColorScheme();
 
   const safeAreaInsets = useSafeAreaInsets();
@@ -189,7 +193,6 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
   });
 
   const updateSelectedDate = (date: Date) => {
-    setSelectedDay(date);
     onDateChange?.(date);
   };
 
@@ -232,17 +235,21 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
                     }}
                     title={'Today'}
                     onPress={() => {
-                      updateSelectedDate(new Date());
+                      const dateToScrollTo =
+                        differenceInDays(minDate, new Date()) > 0
+                          ? minDate
+                          : new Date();
+                      updateSelectedDate(dateToScrollTo);
                       const weekViewIsPresent =
                         weekMonthContainerHeight.value === WEEK_VIEW_HEIGHT;
                       if (weekViewIsPresent) {
                         weekScrollDatePickerToDateTriggerRef?.current?.(
-                          new Date()
+                          dateToScrollTo
                         );
                       } else {
                         hideMonthView();
                         weekScrollDatePickerToDateTriggerRef.current?.(
-                          new Date()
+                          dateToScrollTo
                         );
                         monthScrollToTopTriggerRef?.current?.();
                       }
@@ -280,17 +287,19 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
               updateSelectedDate(date);
             }}
             markedDates={markedDates}
-            selectedDate={selectedDay}
+            selectedDate={selectedDate}
           />
           <MonthView
-            startDate={startDate}
-            endDate={endDate}
-            selectedDate={selectedDay}
-            style={monthViewStyle}
+            minDate={minDate}
+            maxDate={maxDate}
+            selectedDate={selectedDate}
             markedDates={markedDates}
-            onPressDate={(selectedDate) => {
-              updateSelectedDate(selectedDate);
-              weekScrollDatePickerToDateTriggerRef?.current?.(selectedDate);
+            disabledDates={disabledDates}
+            allowsPastDates={allowsPastDates}
+            style={monthViewStyle}
+            onPressDate={(newSelectedDate) => {
+              updateSelectedDate(newSelectedDate);
+              weekScrollDatePickerToDateTriggerRef?.current?.(newSelectedDate);
               hideMonthView();
             }}
             setScrollToTopTrigger={(trigger) => {

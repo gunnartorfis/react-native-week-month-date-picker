@@ -12,45 +12,56 @@ import {
   View,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import type { MarkedDates } from 'react-native-week-month-date-picker';
+import type { DatePickerProps } from '../..';
 import { generateDateRangeSplitByMonth } from '../../utils/generateDateRange';
 import DatePickerItem, { DatePickerItemProps } from '../DatePickerItem';
 import { ITEM_WIDTH } from '../DatePickerItem/styles';
 import { doesDateHaveSlots } from '../WeekView';
-import styles, { lightStyles, darkStyles } from './styles';
+import styles, { darkStyles, lightStyles } from './styles';
 
-const MAX_MONTHS_TO_SHOW = 4;
+const MAX_MONTHS_TO_SHOW_BEFORE_LOADING_MORE = 4;
 
 const MonthViewRaw: React.FC<
   {
-    startDate: Date;
-    endDate: Date;
-    selectedDate: Date;
+    minDate: Exclude<DatePickerProps['minDate'], undefined>;
+    maxDate: Exclude<DatePickerProps['maxDate'], undefined>;
+    selectedDate: DatePickerProps['selectedDate'];
     onPressDate: DatePickerItemProps['onPressDate'];
     setScrollToTopTrigger: (trigger: () => void) => void;
-    markedDates?: MarkedDates;
+    markedDates?: DatePickerProps['markedDates'];
+    allowsPastDates: DatePickerProps['allowsPastDates'];
+    disabledDates: DatePickerProps['disabledDates'];
   } & ScrollViewProps
 > = ({
-  startDate,
-  endDate,
+  minDate,
+  maxDate,
   onPressDate,
   setScrollToTopTrigger,
   style,
   selectedDate,
   markedDates,
+  allowsPastDates,
+  disabledDates,
   ...props
 }) => {
   const scrollViewRef = React.useRef<ScrollView>(null);
   const theme = useColorScheme();
 
-  const endDateIsMoreThanMaxMonthsAway =
-    differenceInMonths(endDate, startDate) > MAX_MONTHS_TO_SHOW;
-  const initialEndDate = endDateIsMoreThanMaxMonthsAway
-    ? addMonths(startDate, MAX_MONTHS_TO_SHOW)
-    : endDate;
+  const maxDateIsMoreThanMaxMonthsAway =
+    differenceInMonths(minDate, maxDate) >
+    MAX_MONTHS_TO_SHOW_BEFORE_LOADING_MORE;
+
+  const initialmaxDate = maxDateIsMoreThanMaxMonthsAway
+    ? addMonths(minDate, MAX_MONTHS_TO_SHOW_BEFORE_LOADING_MORE)
+    : maxDate;
 
   const [datesToDisplay, setDatesToDisplay] = React.useState(
-    generateDateRangeSplitByMonth(startDate, initialEndDate)
+    generateDateRangeSplitByMonth({
+      startDate: minDate,
+      endDate: initialmaxDate,
+      allowsPastDates,
+      disabledDates,
+    })
   );
 
   const isCloseToBottom = ({
@@ -76,8 +87,13 @@ const MonthViewRaw: React.FC<
   }, [setScrollToTopTrigger]);
 
   const allDatesToDisplay = React.useMemo(() => {
-    return generateDateRangeSplitByMonth(startDate, endDate);
-  }, [startDate, endDate]);
+    return generateDateRangeSplitByMonth({
+      startDate: minDate,
+      endDate: maxDate,
+      allowsPastDates,
+      disabledDates,
+    });
+  }, [minDate, maxDate, allowsPastDates, disabledDates]);
 
   const hasLoadedAll = datesToDisplay.length === allDatesToDisplay.length;
 

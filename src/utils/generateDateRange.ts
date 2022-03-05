@@ -7,8 +7,21 @@ import {
   startOfMonth,
   endOfMonth,
 } from 'date-fns';
+import type { DatePickerProps } from '../';
 
-export const generateDateRange = (startDate: Date, endDate: Date) => {
+type GenerateDateRangeParams = {
+  startDate: Date;
+  endDate: Date;
+  disabledDates?: DatePickerProps['disabledDates'];
+  allowsPastDates?: boolean;
+};
+
+export const generateDateRange = ({
+  startDate,
+  endDate,
+  allowsPastDates = true,
+  disabledDates,
+}: GenerateDateRangeParams) => {
   const dates = [];
   let currentDate = startDate;
 
@@ -16,7 +29,10 @@ export const generateDateRange = (startDate: Date, endDate: Date) => {
     dates.push({
       date: currentDate,
       isSelected: isToday(currentDate),
-      isDisabled: isPast(endOfDay(currentDate)),
+      isDisabled:
+        allowsPastDates === true
+          ? disabledDates?.includes(currentDate) ?? false
+          : isPast(endOfDay(currentDate)) ?? false,
     });
     currentDate = addDays(currentDate, 1);
   }
@@ -24,15 +40,22 @@ export const generateDateRange = (startDate: Date, endDate: Date) => {
   return dates;
 };
 
-export const generateDateRangeSplitByMonth = (
-  startDate: Date,
-  endDate: Date
-) => {
+export const generateDateRangeSplitByMonth = ({
+  startDate,
+  endDate,
+  allowsPastDates,
+  disabledDates,
+}: GenerateDateRangeParams) => {
   const months = [];
 
   while (startDate <= endDate) {
     months.push(
-      generateDateRange(startOfMonth(startDate), endOfMonth(startDate))
+      generateDateRange({
+        startDate: startOfMonth(startDate),
+        endDate: endOfMonth(startDate),
+        allowsPastDates,
+        disabledDates,
+      })
     );
     startDate = addMonths(startDate, 1);
   }
