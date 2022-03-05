@@ -315,6 +315,7 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
             setScrollToTopTrigger={(trigger) => {
               monthScrollToTopTriggerRef.current = trigger;
             }}
+            locale={locale}
           />
         </Animated.View>
       </SafeAreaView>
